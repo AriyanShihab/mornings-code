@@ -11,6 +11,7 @@
 const maintainCart=()=> {
 
     let cart=[];
+    let couponCode=`Bangladesh 2.0`;
     
     // add item into cart
     function addItem(name ='product Name', quantity, price){
@@ -103,12 +104,156 @@ const maintainCart=()=> {
 
     }
 
+    // Item Quantity Management:
+
+    function manageQuantity (productName, incriment, decriment, quantities ){
+
+        if(incriment===true&& decriment===true){
+            return 'you can not do increment and decriment at the same time'
+        }
+        if(incriment===false&& decriment===false){
+            return 'you can not do increment and decriment at the same time'
+        }
+        if(incriment&& !Number.isFinite(incriment)){
+            return `increment should be in Number Format`
+        }
+        if(decriment&& !Number.isFinite(decriment)){
+            return `dicrement should be in Number Format`
+        }
+
+
+        let productToBeManaged;
+        for (let i= 0; i< cart.length; i ++) {
+            if(cart[i].name.toLowerCase()===productName.toLowerCase){
+                productToBeManaged= cart[i]
+            }
+          
+        }
+
+        if(incriment){
+            productToBeManaged.quantity+=quantities 
+            return `successfully increase the quantity of of${productToBeManaged.name} `
+        }
+        
+        
+        if(decriment){
+            if(decriment>productToBeManaged.quantity){
+                return 'you cant not removd more item than what you have in your stock'
+    
+            }
+            else{
+                productToBeManaged.quantity-=quantities
+            }
+
+        }
+        return {
+            cart,
+            message:`quantity of ${productToBeManaged.name} has been successfully ${incriment?"increased":"discread"}`
+        }
+
+    }
+
+    // Discounts and Coupons:
+
+    const handelDiscountAndCuupons= function(givenCouponCode, discountPercentage){
+
+        if(givenCouponCode===couponCode){
+            let totalAmountIncart = calculateTotalPriceOfCart()
+            let discount= totalAmountIncart*(discountPercentage/100);
+            let priceAfterDiscout= Math.floor(totalAmountIncart-discount);
+
+        return{
+            totalAmmountOfCartBeforeDiscount:totalAmountIncart,
+            totalAmmountOfCartAfterDiscount:priceAfterDiscout,
+
+        }
+       }else{
+        return 'cupons code dose not match any available coupons right now'
+       }
+
+    }
+
+    // Tax Calculation:
+
+    const taxCalculation = function( percentageOfTax){
+        const totalPriceInCart= calculateTotalPriceOfCart();
+        const calculedTax=(totalPriceInCart*percentageOfTax)/100;
+        const amountToBePaidWithTaxt= totalPriceInCart+calculedTax;
+        return amountToBePaidWithTaxt;
+  
+    }
+    // multi ccurrency
+
+    const multiCurrencyHandel=function(tergatedCurrency='BDT'){
+        // an fixid currency rate from usd to other currency
+
+        let currencyValues=[
+            toBDT={
+                crCode:'BDT',
+                type:'multiply',
+                by:100
+            },
+            toINR={
+                crCode:'INR',
+                type:'multiply',
+                by:100
+            },
+
+            toPkr={
+                crCode:'PKR',
+                type:'multiply',
+                by:150
+            },
+            toQuetyDinner= {
+                crCode:'QDR',
+                type:'division',
+                by:2
+            }
+
+        ]
+        for ( i=0; i<currencyValues.length;i++ ) {
+            if(tergatedCurrency===currencyValues[i].crCode){
+                let priceInCart= calculateTotalPriceOfCart();
+                let convertedPrice;
+                console.log(currencyValues[i])
+                if(currencyValues[i].type==='multiply'){
+                    console.log('is it working?')
+                    convertedPrice= priceInCart*currencyValues[i].by;
+                    return{
+                        priceInBaseCurrency:priceInCart,
+                        priceAfterConversion:convertedPrice,
+                        message:`your base is in USD and you converted your price in ${tergatedCurrency}`
+                    }
+                }
+                if(currencyValues[i].type==='division'){
+                    convertedPrice= priceInCart/currencyValues[i].by;
+                    return{
+                        priceInBaseCurrency:priceInCart,
+                        priceAfterConversion:convertedPrice,
+                        message:`your base is in USD and you converted your price in ${tergatedCurrency}`
+                    }
+                }
+
+            }
+            
+        }
+        return{
+            message:'something went Wrong'
+        }
+
+    }
+
+
     return{
         cart,
         addItem,
         removingItems,
         calculateTotalPriceOfCart,
-        updateProductInformation
+        updateProductInformation,
+        manageQuantity,
+        handelDiscountAndCuupons,
+        taxCalculation,
+        multiCurrencyHandel
     }
     
 }
@@ -122,8 +267,10 @@ productCart.addItem("Monitor",4,200)
 const price= productCart.calculateTotalPriceOfCart()
 const removingItem=productCart.removingItems('laptop')
 const updateProduct =productCart.updateProductInformation('Monitor', {price:200,quantity:10})
-console.log(updateProduct)
 
+const multiCurrency= productCart.multiCurrencyHandel("QDR")
+
+console.log(multiCurrency)
 
 
 
